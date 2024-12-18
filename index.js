@@ -6,7 +6,6 @@ require('dotenv').config();
 // Initialize Express app
 const app = express();
 const PORT = process.env.PORT || 3000;
-
 // Load environment variables
 const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
 const STACKS_NODE_URL = process.env.STACKS_NODE_URL || 'https://stacks-node-api.mainnet.stacks.co';
