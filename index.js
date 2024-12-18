@@ -11,7 +11,13 @@ const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
 const STACKS_NODE_URL = process.env.STACKS_NODE_URL || 'https://stacks-node-api.mainnet.stacks.co';
 
 // Initialize Telegram bot
-const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
+// const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
+const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN);
+
+app.post("/webhook", (req, res) => {
+    bot.processUpdate(req.body);
+    res.sendStatus(200);
+  });
 
 // List of chat IDs to send updates to
 const chatIds = ['1331814679', '6969979193', '6761938952'];
@@ -76,10 +82,14 @@ async function checkMempool() {
     console.log("Checking mempool for new transactions...");
     try {
         const response = await fetchWithRetry(`${STACKS_NODE_URL}/extended/v1/tx/mempool?limit=20&unanchored=true&order_by=age&order=desc`);
-        const smartContracts = response.results.filter(tx => tx.tx_type === 'smart_contract');
+        
+        const smartContracts = response.results.filter(tx => 
+            tx.tx_type === 'smart_contract' && 
+            tx.smart_contract.contract_id.endsWith('stxcity') // Filter for "stxcity"
+        );
 
         if (smartContracts.length > 0) {
-            console.log(`Found ${smartContracts.length} smart contract transaction(s).`);
+            console.log(`Found ${smartContracts.length} relevant smart contract transaction(s).`);
 
             for (const contract of smartContracts) {
                 if (!sentTransactions.has(contract.tx_id)) {
@@ -95,12 +105,13 @@ async function checkMempool() {
                 }
             }
         } else {
-            console.log("No new smart contract transactions found.");
+            console.log("No new relevant smart contract transactions found.");
         }
     } catch (error) {
         console.error('Error checking mempool:', error);
     }
 }
+
 
 // Check mempool every 3 seconds
 setInterval(checkMempool, 3000);
