@@ -106,6 +106,17 @@ async function checkMempool() {
 // Check mempool every 3 seconds
 setInterval(checkMempool, 3000);
 
+
+const axios = require('axios');
+
+// Self-ping every 5 minutes
+setInterval(() => {
+  axios.get('https://sniper-an93.onrender.com')
+    .then(() => console.log('Self-ping successful'))
+    .catch(err => console.error('Self-ping failed', err));
+}, 300000); // 300,000 ms = 5 minutes
+
+
 // Start Express server
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
