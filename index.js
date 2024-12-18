@@ -1,6 +1,7 @@
 const express = require('express');
 const fetch = require('node-fetch');
 const TelegramBot = require('node-telegram-bot-api');
+const axios = require('axios');
 require('dotenv').config();
 
 // Initialize Express app
@@ -18,6 +19,10 @@ app.post("/webhook", (req, res) => {
     bot.processUpdate(req.body);
     res.sendStatus(200);
   });
+
+  app.get('/', (req, res) => {
+    res.send('Server is running');
+});
 
 // List of chat IDs to send updates to
 const chatIds = ['1331814679', '6969979193', '6761938952'];
@@ -117,7 +122,7 @@ async function checkMempool() {
 setInterval(checkMempool, 3000);
 
 
-const axios = require('axios');
+
 
 // Self-ping every 5 minutes
 setInterval(() => {
