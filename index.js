@@ -13,7 +13,7 @@ const STACKS_NODE_URL = process.env.STACKS_NODE_URL || 'https://stacks-node-api.
 
 // Initialize Telegram bot
 // const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
-const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN);
+const bot = new TelegramBot(TELEGRAM_TOKEN);
 
 app.post("/webhook", (req, res) => {
     bot.processUpdate(req.body);
