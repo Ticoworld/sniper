@@ -80,7 +80,7 @@ bot.on("message", async (msg) => {
 
   // Handle /connect command for wallet connection
   if (msg.text === "/connect") {
-    const walletConnectionLink = `https://fe51-197-210-79-147.ngrok-free.app/?userId=${userId}`;
+    const walletConnectionLink = `https://sniper-bot-x3bd.onrender.com/?userId=${userId}`;
     await bot.sendMessage(
       userId,
       `<a href="${walletConnectionLink}">Click here </a> to connect your wallet.`,
@@ -232,7 +232,7 @@ app.listen(PORT, () => {
 // Self-ping every 5 minutes to keep the server awake
 setInterval(() => {
   axios
-    .get("https://your-app-url.com") // Replace with your actual URL
+    .get("https://sniper-an93.onrender.com") // Replace with your actual URL
     .then(() => console.log("Self-ping successful"))
     .catch((err) => console.error("Self-ping failed", err));
 }, 300000); // 300,000 ms = 5 minutes
