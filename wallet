@@ -8,23 +8,11 @@ require("dotenv").config();
 // Initialize Express app
 const app = express();
 const PORT = process.env.PORT || 5000;
-const cors = require('cors');
-app.use(cors());
-
 
 // Load environment variables
 const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
 const STACKS_NODE_URL = process.env.STACKS_NODE_URL || "https://stacks-node-api.mainnet.stacks.co";
 const MONGO_URI = process.env.MONGO_URI;
-
-// Validate environment variables
-if (!TELEGRAM_TOKEN || !MONGO_URI) {
-  console.error("Missing required environment variables."); 
-  process.exit(1);
-}
-
-// Middleware to parse JSON requests
-app.use(express.json());
 
 // Connect to MongoDB
 mongoose.connect(MONGO_URI)
@@ -37,7 +25,7 @@ const userSchema = new mongoose.Schema({
   wallet: { type: String, default: null },
   connected: { type: Boolean, default: false },
 });
-const User = mongoose.model("User ", userSchema);
+const User = mongoose.model("User", userSchema);
 
 // Initialize Telegram bot
 const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
@@ -52,20 +40,21 @@ app.get("/", (req, res) => {
   res.send("Server is running");
 });
 
-// Handle incoming messageslet 
-awaitingUserId = false;
-let adminUserId = "1331814679";  // Replace with your actual admin's user ID
-
+// Handle incoming messages
 bot.on("message", async (msg) => {
   const userId = msg.chat.id.toString();  // Use userId as string for MongoDB compatibility
-
+  
   // Check if user is authorized
   let user = await User.findOne({ userId: userId });
-
-  // If user is not in the database, deny access
+  
+  // If user is not in the database, add them as an authorized user
   if (!user) {
-    await bot.sendMessage(userId, "You are not authorized to use this bot. Please contact the admin to get access.");
-    return; // Stop further processing
+    user = new User({
+      userId: userId,
+      connected: false,
+    });
+    await user.save();
+    await bot.sendMessage(userId, "Welcome! You are now authorized to use this bot.");
   }
 
   // Handle /start command to check for wallet connection
@@ -75,42 +64,34 @@ bot.on("message", async (msg) => {
     } else {
       await bot.sendMessage(userId, "Welcome back! Your wallet is connected.");
     }
-    return; // Stop further processing for /start
   }
 
   // Handle /connect command for wallet connection
   if (msg.text === "/connect") {
-    const walletConnectionLink = `https://fe51-197-210-79-147.ngrok-free.app/?userId=${userId}`;
-    await bot.sendMessage(
-      userId,
-      `<a href="${walletConnectionLink}">Click here </a> to connect your wallet.`,
-      { parse_mode: "HTML" }
-    );
-    return; // Stop further processing for /connect
+    const walletConnectionLink = `https://your-wallet-connect-link.com?userId=${userId}`;
+    await user.save();
+    await bot.sendMessage(userId, `Click [here](${walletConnectionLink}) to connect your wallet.`, {
+      parse_mode: "Markdown",
+    });
+  }
+});
+
+app.post("/update-wallet", async (req, res) => {
+  const { userId, wallet } = req.body;
+
+  if (!userId || !wallet) {
+    return res.status(400).send("Missing userId or wallet.");
   }
 
-  // Admin check for /adduser command
-  if (msg.text === "/adduser" && userId === adminUserId && !awaitingUserId) {
-    awaitingUserId = true;
-    await bot.sendMessage(userId, "Please send the user ID to add.");
-    return; // Stop further processing for /adduser
+  const user = await User.findOne({ userId });
+  if (user) {
+      user.wallet = wallet;
+      user.connected = true;
+      await user.save();
+      return res.status(200).send("Wallet updated successfully.");
   }
 
-  // Capture the next message as the new user ID to be added
-  if (awaitingUserId) {
-    const newUserId = msg.text;
-    let userInDB = await User.findOne({ userId: newUserId });
-
-    if (userInDB) {
-      await bot.sendMessage(userId, "This user is already in the database.");
-    } else {
-      // Add the new user to the database
-      const newUser = new User({ userId: newUserId, connected: false, wallet: null });
-      await newUser.save();
-      await bot.sendMessage(userId, `User with ID ${newUserId} has been added successfully.`);
-    }
-    awaitingUserId = false; // Reset the state after processing
-  }
+  return res.status(404).send("User not found.");
 });
 
 
@@ -195,44 +176,19 @@ async function checkMempool() {
   }
 }
 
-// Initial call to check the mempool
+// Initial call
 checkMempool();
-
-// Endpoint to update the wallet address
-app.post("/update-wallet", async (req, res) => {
-  console.log(req.body); // Log incoming request body
-  const { userId, wallet } = req.body;
-
-  if (!userId || !wallet) {
-    return res.status(400).send("Invalid request");
-  }
-
-  try {
-    const user = await User.findOne({ userId });
-    if (user) {
-      user.wallet = wallet;
-      user.connected = true;
-      await user.save();
-      return res.status(200).send("Wallet updated successfully.");
-    }
-    return res.status(404).send("User not found.");
-  } catch (error) {
-    console.error("Error updating wallet:", error); 
-    return res.status(500).send("Internal server error.");
-  }
-});
-
 
 
 // Start Express server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
- 
-// Self-ping every 5 minutes to keep the server awake
+
+// Self-ping every 5 minutes
 setInterval(() => {
   axios
-    .get("https://your-app-url.com") // Replace with your actual URL
+    .get("https://sniper-an93.onrender.com")
     .then(() => console.log("Self-ping successful"))
     .catch((err) => console.error("Self-ping failed", err));
 }, 300000); // 300,000 ms = 5 minutes

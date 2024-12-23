@@ -11,11 +11,16 @@
   "description": "",
   "dependencies": {
     "@stacks/blockchain-api-client": "^8.3.0",
+    "@stacks/connect": "^7.9.0",
+    "@stacks/keychain": "^4.3.8",
+    "@stacks/network": "^7.0.2",
     "@stacks/transactions": "^7.0.2",
     "@stacks/wallet-sdk": "^7.0.2",
     "axios": "^1.7.9",
+    "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "mongoose": "^8.9.2",
     "node-telegram-bot-api": "^0.66.0",
     "nodemon": "^3.1.9",
     "ws": "^8.18.0"
