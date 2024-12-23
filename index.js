@@ -40,12 +40,14 @@ const userSchema = new mongoose.Schema({
 const User = mongoose.model("User ", userSchema);
 
 // Initialize Telegram bot
-const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
+// const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
+const bot = new TelegramBot(TELEGRAM_TOKEN);
 
 // Webhook for Telegram (if you're using webhooks instead of polling)
 app.post("/webhook", (req, res) => {
   bot.processUpdate(req.body);
   res.sendStatus(200);
+  console.log('helloworld');
 });
 
 app.get("/", (req, res) => {
